@@ -98,10 +98,9 @@ def print_tree(
     show_hz=False,
 ):
     # Colors from LS_COLORS/LSCOLORS
-    di = (ls_colors or {}).get("di", "01;34")
-    ln = (ls_colors or {}).get("ln", "01;36")
-    ex = (ls_colors or {}).get("ex", "01;35")
-    fi = (ls_colors or {}).get("fi", "0")
+    di = (ls_colors or {}).get("di", "01;34") # topic names
+    ln = (ls_colors or {}).get("ln", "01;36") # pub color
+    ex = (ls_colors or {}).get("ex", "01;35") # sub color
 
     keys = sorted(tree.keys())
     for i, k in enumerate(keys):
@@ -231,12 +230,10 @@ def filter_tree_to_path(tree, path):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-i",
-        "--include-hidden-topics",
-        action="store_true",
-        help='show topics with any path segment starting with "_" (e.g., _action). "parameter_events", "rosout" hidden by default',
+    parser = argparse.ArgumentParser(
+        formatter_class=lambda prog: argparse.HelpFormatter(
+            prog, max_help_position=40, width=120
+        )
     )
     parser.add_argument(
         "-c",
@@ -257,6 +254,18 @@ def parse_args():
         help="show QoS after pub/sub lines",
     )
     parser.add_argument(
+        "-t",
+        "--topic",
+        default=None,
+        help="only show this topic or namespace path (e.g., /fmu/out/vehicle_status or /fmu)",
+    )
+    parser.add_argument(
+        "-i",
+        "--include-hidden-topics",
+        action="store_true",
+        help='show topics with any path segment starting with "_" (e.g., _action)',
+    )
+    parser.add_argument(
         "-H",
         "--show-hz",
         action="store_true",
@@ -267,12 +276,6 @@ def parse_args():
         type=float,
         default=1.0,
         help="sampling window in seconds for Hz measurement (default: 1.0)",
-    )
-    parser.add_argument(
-        "-t",
-        "--topic",
-        default=None,
-        help="only show this topic or namespace path (e.g., /fmu/out/vehicle_status or /fmu)",
     )
     return parser.parse_args()
 
