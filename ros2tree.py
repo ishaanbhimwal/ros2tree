@@ -9,8 +9,8 @@ import os
 def main():
     parser = argparse.ArgumentParser(prog="ros2tree", add_help=False)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-n", "--node", action="store_true", help="run node view")
-    group.add_argument("-t", "--topic", action="store_true", help="run topic view")
+    group.add_argument("-n", "--node", action="store_true", help="view nodes")
+    group.add_argument("-t", "--topic", action="store_true", help="view topics")
     opts, forwarded = parser.parse_known_args()
 
     target = "ros2tree_node" if opts.node else "ros2tree_topic"

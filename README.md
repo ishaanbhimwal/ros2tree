@@ -34,14 +34,14 @@ ros2tree_topic
 ros2tree -n -p -P -c # view nodes, show pkg, show PID, colorize output
 ```
 
-![node](./res/screenshot_2025-11-19-201432.png)
+![node](./res/screenshot_2025-11-19-204153.png)
+
 
 ```bash
 ros2tree -t -c -m # view topics, colorize output, show msg type
 ```
 
-![topic](./res/screenshot_2025-11-19-201346.png)
-
+![topic](./res/screenshot_2025-11-19-204120.png)
 
 ## Todo
 - Add service script
