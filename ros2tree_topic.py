@@ -254,8 +254,8 @@ def parse_args():
         help="show QoS after pub/sub lines",
     )
     parser.add_argument(
-        "-t",
-        "--topic",
+        "-T",
+        "--show-topic",
         default=None,
         help="only show this topic or namespace path (e.g., /fmu/out/vehicle_status or /fmu)",
     )
@@ -288,8 +288,8 @@ def main():
         time.sleep(0.2)  # allow discovery to settle
         tree = build_tree(node, include_hidden=args.include_hidden_topics)
 
-        if args.topic:
-            sel = args.topic if args.topic.startswith("/") else "/" + args.topic
+        if args.show_topic:
+            sel = args.show_topic if args.show_topic.startswith("/") else "/" + args.show_topic
             tree = filter_tree_to_path(tree, sel)
             if not tree:
                 print(f"[warn] not found: {sel}")

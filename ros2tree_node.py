@@ -545,16 +545,16 @@ def parse_args(argv=None):
         "-q", "--show-qos", action="store_true", help="show QoS after pub/sub lines"
     )
     p.add_argument(
-        "-n",
-        "--node",
+        "-N",
+        "--show-node",
         default=None,
         help="filter by node or namespace (e.g., /ns/node or /ns)",
     )
     p.add_argument(
-        "-p", "--show-pid", action="store_true", help="show PID for each node"
+        "-P", "--show-pid", action="store_true", help="show PID for each node"
     )
     p.add_argument(
-        "-P", "--show-pkg", action="store_true", help="show package for each node"
+        "-p", "--show-pkg", action="store_true", help="show package for each node"
     )
     return p.parse_args(argv)
 
@@ -585,7 +585,7 @@ def main(argv=None):
         ls_colors=ls_colors,
         show_type=args.show_msg_type,
         show_qos=args.show_qos,
-        node_filter=args.node,
+        node_filter=args.show_node,
         show_pid=args.show_pid,
         show_pkg=args.show_pkg,
     )
