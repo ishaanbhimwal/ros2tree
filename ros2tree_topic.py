@@ -98,9 +98,9 @@ def print_tree(
     show_hz=False,
 ):
     # Colors from LS_COLORS/LSCOLORS
-    di = (ls_colors or {}).get("di", "01;34") # topic names
-    ln = (ls_colors or {}).get("ln", "01;36") # pub color
-    ex = (ls_colors or {}).get("ex", "01;35") # sub color
+    di = (ls_colors or {}).get("di", "01;34")  # topic names
+    ln = (ls_colors or {}).get("ln", "01;36")  # pub color
+    ex = (ls_colors or {}).get("ex", "01;35")  # sub color
 
     keys = sorted(tree.keys())
     for i, k in enumerate(keys):
@@ -289,7 +289,11 @@ def main():
         tree = build_tree(node, include_hidden=args.include_hidden_topics)
 
         if args.show_topic:
-            sel = args.show_topic if args.show_topic.startswith("/") else "/" + args.show_topic
+            sel = (
+                args.show_topic
+                if args.show_topic.startswith("/")
+                else "/" + args.show_topic
+            )
             tree = filter_tree_to_path(tree, sel)
             if not tree:
                 print(f"[warn] not found: {sel}")

@@ -14,8 +14,6 @@ chmod +x ros2tree.py ros2tree_node.py ros2tree_topic.py
 sudo install -m 0755 ros2tree.py /usr/local/bin/ros2tree
 sudo install -m 0755 ros2tree_node.py /usr/local/bin/ros2tree_node
 sudo install -m 0755 ros2tree_topic.py /usr/local/bin/ros2tree_topic
-
-# restart your terminal session and voila!
 ```
 
 ## Usage

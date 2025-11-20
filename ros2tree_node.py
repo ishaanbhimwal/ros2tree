@@ -38,6 +38,14 @@ def qos_str(qos):
     return f"{rel}, {dur}, depth={depth}"
 
 
+def is_hidden_topic(name: str) -> bool:
+    parts = [p for p in name.split("/") if p]
+    if any(part.startswith("_") for part in parts):
+        return True
+    hidden_basenames = {"parameter_events", "rosout"}
+    return parts and parts[-1] in hidden_basenames
+
+
 DEFAULT_LS = {"di": "01;34", "ln": "01;36", "ex": "01;35", "fi": "0"}
 
 
@@ -98,7 +106,9 @@ def should_hide_node(fqn: str) -> bool:
 # ---- ROS graph (augmented with types/QoS) ----
 
 
-def build_node_graph(n: Node) -> Dict[str, Dict[str, List[Tuple[str, str, str]]]]:
+def build_node_graph(
+    n: Node, include_hidden: bool = False
+) -> Dict[str, Dict[str, List[Tuple[str, str, str]]]]:
     """
     Returns:
       {
@@ -117,6 +127,9 @@ def build_node_graph(n: Node) -> Dict[str, Dict[str, List[Tuple[str, str, str]]]
         node_graph.setdefault(fqn_node, {"pubs": [], "subs": []})
 
     t_list = safe_get_topic_names_and_types(n)
+    if not include_hidden:
+        t_list = [(t, types) for t, types in t_list if not is_hidden_topic(t)]
+
     topic_types = {t: ",".join(types) if types else "?" for t, types in t_list}
 
     for topic, _types in t_list:
@@ -490,23 +503,28 @@ def print_nodes_tree(
         pubs_label = colorize("pubs:", ln, enable_color)
         subs_label = colorize("subs:", ex, enable_color)
 
-        # Print pubs section
-        if pubs:
-            print(f"{next_prefix}├─ {pubs_label}")
+        has_pubs = bool(pubs)
+        has_subs = bool(subs)
+
+        # Print pubs section ONLY if there are pubs
+        if has_pubs:
+            # Label branch depends on whether subs section follows
+            label_br = "├─ " if has_subs else "└─ "
+            print(f"{next_prefix}{label_br}{pubs_label}")
+            # Items: keep vertical line if subs follows
+            mid = "│  " if has_subs else "   "
             for j, item in enumerate(pubs):
-                is_last = (j == len(pubs) - 1) and not subs
-                br = "└─ " if is_last else "├─ "
+                # If subs follows, keep '├─ ' even for last pub item to visually continue
+                br = "└─ " if (j == len(pubs) - 1 and not has_subs) else "├─ "
                 topic, typ, qos = item if len(item) == 3 else (item, "?", "")
                 type_part = f" [{typ}]" if show_type else ""
                 qos_part = f" ({qos})" if (show_qos and qos) else ""
-                prefix = f"{next_prefix}│  {br}"
+                prefix = f"{next_prefix}{mid}{br}"
                 topic_col = colorize(topic, ln, enable_color)
                 print(prefix + topic_col + type_part + qos_part)
-        else:
-            print(f"{next_prefix}├─ {pubs_label} (none)")
 
-        # Print subs section
-        if subs:
+        # Print subs section (if any)
+        if has_subs:
             print(f"{next_prefix}└─ {subs_label}")
             for j, item in enumerate(subs):
                 br = "└─ " if j == len(subs) - 1 else "├─ "
@@ -516,8 +534,10 @@ def print_nodes_tree(
                 prefix = f"{next_prefix}   {br}"
                 topic_col = colorize(topic, ex, enable_color)
                 print(prefix + topic_col + type_part + qos_part)
-        else:
-            print(f"{next_prefix}└─ {subs_label} (none)")
+        elif not has_pubs:
+            # show that both sections are empty
+            # print(f"{next_prefix}└─ {subs_label} (none)")
+            pass
 
 
 # ---- main ----
@@ -545,6 +565,12 @@ def parse_args(argv=None):
         "-q", "--show-qos", action="store_true", help="show QoS after pub/sub lines"
     )
     p.add_argument(
+        "-i",
+        "--include-hidden-topics",
+        action="store_true",
+        help='show topics with any path segment starting with "_" (e.g., _action)',
+    )
+    p.add_argument(
         "-N",
         "--show-node",
         default=None,
@@ -565,7 +591,7 @@ def main(argv=None):
     rclpy.init()
     n = Introspector()
     try:
-        graph = build_node_graph(n)
+        graph = build_node_graph(n, include_hidden=args.include_hidden_topics)
         ns = n.get_namespace() or "/"
         ns = ns if ns.startswith("/") else "/" + ns
     finally:
