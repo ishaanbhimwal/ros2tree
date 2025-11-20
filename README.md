@@ -43,3 +43,4 @@ ros2tree -t -c -m # view topics, colorize output, show msg type
 
 ## Todo
 - Add service script
+- Release as a [ROS pkg](https://docs.ros.org/en/kilted/How-To-Guides/Releasing/Releasing-a-Package.html)

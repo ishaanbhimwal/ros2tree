@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+
+# ros2tree_node.py
+
 import argparse
 import os
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
-
+import time
 import rclpy
 from rclpy.node import Node
 
@@ -44,6 +47,27 @@ def is_hidden_topic(name: str) -> bool:
         return True
     hidden_basenames = {"parameter_events", "rosout"}
     return parts and parts[-1] in hidden_basenames
+
+
+def compute_node_topic_counts(
+    node_graph: Dict[str, dict],
+    node_filter: Optional[str] = None,
+) -> Tuple[int, int]:
+    # Apply same filter logic as print_nodes_tree
+    def matches_filter(fqn: str) -> bool:
+        if not node_filter:
+            return True
+        sel = node_filter if node_filter.startswith("/") else "/" + node_filter
+        return fqn == sel or fqn.startswith(sel + "/")
+
+    nodes = [f for f in node_graph.keys() if matches_filter(f)]
+    topic_set = set()
+    for fqn in nodes:
+        for topic, *_ in node_graph.get(fqn, {}).get("pubs", []):
+            topic_set.add(topic)
+        for topic, *_ in node_graph.get(fqn, {}).get("subs", []):
+            topic_set.add(topic)
+    return len(nodes), len(topic_set)
 
 
 DEFAULT_LS = {"di": "01;34", "ln": "01;36", "ex": "01;35", "fi": "0"}
@@ -89,11 +113,22 @@ def safe_get_node_names_and_namespaces(n: Node) -> List[Tuple[str, str]]:
             return []
 
 
+# ---- internal visibility toggle ----
+# hide internal nodes (ros2cli daemon and introspector).
+# flip this based on -i/--include-hidden-topics to match topic-view behavior.
+HIDE_INTERNAL = True
+
+
 # ---- hide helpers ----
 
 
 def should_hide_node(fqn: str) -> bool:
     """Hide ros2cli internals and our introspector."""
+    """Hide ros2cli internals and our introspector (unless HIDE_INTERNAL is False)."""
+
+    if not HIDE_INTERNAL:
+        return False
+
     base = base_name_from_fqn(fqn) or ""
     return (
         fqn == "/ros2_tree_introspector"
@@ -588,9 +623,15 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
 
+    # Align with topic view: if hidden topics are included (-i),
+    # also show internal nodes (ros2cli daemon + this introspector).
+    global HIDE_INTERNAL
+    HIDE_INTERNAL = not args.include_hidden_topics
+
     rclpy.init()
     n = Introspector()
     try:
+        time.sleep(0.2)  # allow discovery to settle
         graph = build_node_graph(n, include_hidden=args.include_hidden_topics)
         ns = n.get_namespace() or "/"
         ns = ns if ns.startswith("/") else "/" + ns
@@ -598,7 +639,7 @@ def main(argv=None):
         rclpy.shutdown()
 
     # Linux-only process scan + robust mapping (no extra CLI flags)
-    procs = find_processes(hide_cli_daemon=True)
+    procs = find_processes(hide_cli_daemon=HIDE_INTERNAL)
     mapping = map_nodes_to_processes(graph, procs)
 
     ls_colors = parse_ls_colors() if args.show_color else None
@@ -615,6 +656,9 @@ def main(argv=None):
         show_pid=args.show_pid,
         show_pkg=args.show_pkg,
     )
+
+    n_nodes, n_topics = compute_node_topic_counts(graph, node_filter=args.show_node)
+    print(f"\n{n_nodes} nodes, {n_topics} topics")
 
 
 if __name__ == "__main__":

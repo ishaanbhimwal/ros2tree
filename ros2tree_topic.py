@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# ros2tree_topic.py
+
 import argparse
 import os
 import rclpy
@@ -34,6 +37,35 @@ def is_hidden_topic(name: str) -> bool:
         return True
     hidden_basenames = {"parameter_events", "rosout"}
     return parts and parts[-1] in hidden_basenames
+
+
+def compute_topic_node_counts(tree) -> tuple[int, int]:
+    """
+    Returns (n_nodes, n_topics) for the currently displayed tree.
+    - n_topics: count of topic leaves
+    - n_nodes: unique node names across all pubs/subs
+    """
+
+    node_set = set()
+    topic_count = 0
+
+    def walk(subtree):
+        nonlocal topic_count
+
+        if not isinstance(subtree, dict):
+            return
+        for v in subtree.values():
+            if isinstance(v, dict) and "__type__" in v:
+                topic_count += 1
+                for node_name, _qos in v.get("pubs", []):
+                    node_set.add(node_name)
+                for node_name, _qos in v.get("subs", []):
+                    node_set.add(node_name)
+            elif isinstance(v, dict):
+                walk(v)
+
+    walk(tree)
+    return len(node_set), topic_count
 
 
 def build_tree(node, include_hidden=False):
@@ -321,6 +353,10 @@ def main():
             show_qos=args.show_qos,
             show_hz=args.show_hz,
         )
+
+        n_nodes, n_topics = compute_topic_node_counts(tree)
+        print(f"\n{n_topics} topics, {n_nodes} nodes")
+
     finally:
         rclpy.shutdown()
 
