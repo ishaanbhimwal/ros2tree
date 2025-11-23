@@ -16,16 +16,40 @@ sudo install -m 0755 ros2tree_node.py /usr/local/bin/ros2tree_node
 sudo install -m 0755 ros2tree_topic.py /usr/local/bin/ros2tree_topic
 ```
 
-## Usage
-- `ros2tree` is a wrapper that exposes subcommands. one can also run `ros2tree_node` and `ros2tree_topic` directly.
+## Docker Setup
+
+### Using Pre-built Image from GitHub Container Registry
+You can use the pre-built Docker image from GitHub Container Registry:
 
 ```bash
+docker pull ghcr.io/ishaanbhimwal/ros2tree:latest
+```
+
+##### run the container (requires --network host for ROS 2 communication)
+```bash
+docker run -it --network host ghcr.io/ishaanbhimwal/ros2tree:latest
+```
+
+### Building Locally
+Alternatively, you can build the Docker image locally:
+
+```bash
+docker build -t ros2tree:latest .
+```
+
+##### run the locally built container
+```bash
+docker run -it --network host ros2tree:latest
+```
+
+##### inside the container, you can use the tools directly:
+```bash
 ros2tree -h
-# or
 ros2tree_node
-# or
 ros2tree_topic
 ```
+
+**Note:** The `--network host` option is required for the container to discover and communicate with ROS 2 nodes running on the host system.
 
 ## Examples
 ```bash
