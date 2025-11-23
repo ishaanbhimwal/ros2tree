@@ -17,13 +17,27 @@ sudo install -m 0755 ros2tree_topic.py /usr/local/bin/ros2tree_topic
 ```
 
 ## Docker Setup
-You can also run ros2tree in a Docker container with ROS 2 Humble:
+
+### Using Pre-built Image from GitHub Container Registry
+You can use the pre-built Docker image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/ishaanbhimwal/ros2tree:latest
+```
+
+##### run the container (requires --network host for ROS 2 communication)
+```bash
+docker run -it --network host ghcr.io/ishaanbhimwal/ros2tree:latest
+```
+
+### Building Locally
+Alternatively, you can build the Docker image locally:
 
 ```bash
 docker build -t ros2tree:latest .
 ```
 
-##### run the container (requires --network host for ROS 2 communication)
+##### run the locally built container
 ```bash
 docker run -it --network host ros2tree:latest
 ```
