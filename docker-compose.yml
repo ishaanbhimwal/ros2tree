@@ -1,0 +1,13 @@
+services:
+  ros2-tree:
+    build: .
+    image: ros2-tree:latest
+    container_name: ros2-tree
+    network_mode: host
+    stdin_open: true
+    tty: true
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=${DISPLAY}
+    command: bash

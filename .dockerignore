@@ -1,0 +1,14 @@
+# Ignore build artifacts and development files
+build/
+install/
+log/
+.git/
+*.pyc
+__pycache__/
+.pytest_cache/
+*.egg-info/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
