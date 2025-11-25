@@ -32,13 +32,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase repo name
+        id: lowercase
+        run: echo "repo=${{ github.repository_owner }}/${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
+            ghcr.io/${{ steps.lowercase.outputs.repo }}:latest
+            ghcr.io/${{ steps.lowercase.outputs.repo }}:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/${{ steps.lowercase.outputs.repo }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ steps.lowercase.outputs.repo }}:buildcache,mode=max
