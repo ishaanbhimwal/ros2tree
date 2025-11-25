@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# ros2tree_node.py
+# node.py
 
 import argparse
 import os

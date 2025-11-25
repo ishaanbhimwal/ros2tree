@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# ros2tree_topic.py
+# topic.py
 
 import argparse
 import os
