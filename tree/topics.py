@@ -1,4 +1,4 @@
-# topic.py
+# topics.py
 
 import argparse
 import os
@@ -6,6 +6,9 @@ import rclpy
 from rclpy.node import Node
 import time
 from rosidl_runtime_py.utilities import get_message
+
+
+# Utils
 
 
 def fq(ns, name):
@@ -38,18 +41,11 @@ def is_hidden_topic(name: str) -> bool:
 
 
 def compute_topic_node_counts(tree) -> tuple[int, int]:
-    """
-    Returns (n_nodes, n_topics) for the currently displayed tree.
-    - n_topics: count of topic leaves
-    - n_nodes: unique node names across all pubs/subs
-    """
-
     node_set = set()
     topic_count = 0
 
     def walk(subtree):
         nonlocal topic_count
-
         if not isinstance(subtree, dict):
             return
         for v in subtree.values():
@@ -94,11 +90,13 @@ def build_tree(node, include_hidden=False):
     return tree
 
 
+# Colors
+
 DEFAULT_LS = {"di": "01;34", "ln": "01;36", "ex": "01;35", "fi": "0"}
 
 
 def parse_ls_colors():
-    # Prefer GNU LS_COLORS if present; return di/ln/ex/fi with sensible defaults
+    # Prefer GNU LS_COLORS if present, return di/ln/ex/fi with sensible defaults
     ls = os.environ.get("LS_COLORS", "")
     if ls:
         colors = {}
@@ -107,7 +105,7 @@ def parse_ls_colors():
                 k, v = part.split("=", 1)
                 colors[k] = v
         return {k: colors.get(k, v) for k, v in DEFAULT_LS.items()}
-    # If LSCOLORS is present (BSD/macOS), just use sensible defaults
+    # If LSCOLORS is present (BSD/macOS), use sensible defaults
     if os.environ.get("LSCOLORS"):
         return dict(DEFAULT_LS)
     # Fallback defaults
@@ -116,6 +114,9 @@ def parse_ls_colors():
 
 def colorize(text, code):
     return f"\x1b[{code}m{text}\x1b[0m" if code else text
+
+
+# Printing
 
 
 def print_tree(
@@ -128,9 +129,9 @@ def print_tree(
     show_hz=False,
 ):
     # Colors from LS_COLORS/LSCOLORS
-    di = (ls_colors or {}).get("di", "01;34")  # topic names
-    ln = (ls_colors or {}).get("ln", "01;36")  # pub color
-    ex = (ls_colors or {}).get("ex", "01;35")  # sub color
+    di = (ls_colors or {}).get("di", "01;34")  # Topic names
+    ln = (ls_colors or {}).get("ln", "01;36")  # Publisher color
+    ex = (ls_colors or {}).get("ex", "01;35")  # Subscription color
 
     keys = sorted(tree.keys())
     for i, k in enumerate(keys):
@@ -140,7 +141,7 @@ def print_tree(
         val = tree[k]
 
         if isinstance(val, dict) and "__type__" in val:
-            # topic leaf name
+            # Topic leaf name
             name = colorize(k, di) if enable_color else k
             type_str = f' [{val["__type__"]}]' if show_type else ""
             hz = val.get("__hz__")
@@ -151,7 +152,7 @@ def print_tree(
             )
             print(f"{prefix}{branch}{name}{type_str}{hz_str}")
 
-            # pubs
+            # Publishers
             for j, (node_name, qos) in enumerate(sorted(val["pubs"])):
                 br = "├─ " if (j + 1) < len(val["pubs"]) or val["subs"] else "└─ "
                 label = colorize("pub:", ln) if enable_color else "pub:"
@@ -159,7 +160,7 @@ def print_tree(
                 qos_part = f" ({qos})" if show_qos else ""
                 print(f"{next_prefix}{br}{label} {node_disp}{qos_part}")
 
-            # subs
+            # Subscriptions
             for j, (node_name, qos) in enumerate(sorted(val["subs"])):
                 br = "└─ " if (j + 1) == len(val["subs"]) else "├─ "
                 label = colorize("sub:", ex) if enable_color else "sub:"
@@ -168,13 +169,16 @@ def print_tree(
                 print(f"{next_prefix}{br}{label} {node_disp}{qos_part}")
 
         else:
-            # directory segments
+            # Directory segments
             dir_name = k + "/"
             dir_name = colorize(dir_name, di) if enable_color else dir_name
             print(f"{prefix}{branch}{dir_name}")
             print_tree(
                 val, next_prefix, enable_color, ls_colors, show_type, show_qos, show_hz
             )
+
+
+# Hz Measurement
 
 
 def measure_and_annotate_hz(node, tree, include_hidden=False, window_sec=1.0):
@@ -244,6 +248,9 @@ def measure_and_annotate_hz(node, tree, include_hidden=False, window_sec=1.0):
             leaf["__hz__"] = n / duration
 
 
+# Filtering
+
+
 def filter_tree_to_path(tree, path):
     parts = [p for p in path.split("/") if p]
     if not parts:
@@ -257,6 +264,9 @@ def filter_tree_to_path(tree, path):
     for p in reversed(parts):
         sub = {p: sub}
     return sub
+
+
+# CLI
 
 
 def parse_args(argv=None):
@@ -304,12 +314,15 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+# Main
+
+
 def main(argv=None):
     args = parse_args(argv)
     rclpy.init()
     node = Inspector()
     try:
-        time.sleep(0.2)
+        time.sleep(0.5)  # Allow discovery to settle
         tree = build_tree(node, include_hidden=args.include_hidden_topics)
 
         if args.show_topic:

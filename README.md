@@ -2,23 +2,32 @@
 
 ROS 2 CLI tool to view node/topic tree, inspired by the [tree](https://wikipedia.org/wiki/Tree_(command)) command. Tested on ROS Humble on Ubuntu 22.04</description>
 
+## Setup
+```bash
+cd ~/ros2_ws/src
+git clone https://github.com/ishaanbhimwal/ros2tree.git
+cd ~/ros2_ws
+colcon build --packages-select tree
+source install/setup.bash
+```
+
 ## Usage
 ```bash
-ros2 run tree node
+ros2 tree nodes
 # or
-ros2 run tree topic
+ros2 tree topics
 ```
 
 ## Examples
 ```bash
-ros2 run tree node -p -P -c # view nodes, show pkg, show PID, colorize output
+ros2 tree nodes -p -P -c # view nodes, show pkg, show PID, colorize output
 ```
 
-![node](https://github.com/user-attachments/assets/a758689c-ce96-4b88-80e7-a92299463625)
+![node](https://github.com/user-attachments/assets/70462d4c-82eb-4488-a098-fb872119ae44)
 
 
 ```bash
-ros2 run tree topic -c -m # view topics, colorize output, show msg type
+ros2 tree topics -c -m # view topics, colorize output, show msg type
 ```
 
-![topic](https://github.com/user-attachments/assets/9a80cfc8-faf1-4f46-b976-aa389a0658b9)
+![topic](https://github.com/user-attachments/assets/869de9a6-b129-4b36-8ba9-19573359320f)

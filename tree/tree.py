@@ -1,7 +1,5 @@
-
 # tree.py
 
-from argparse import ArgumentParser
 from ros2cli.command import CommandExtension
 from ros2cli.verb import get_verb_extensions
 from ros2cli.verb import VerbExtension as _VerbExtension
@@ -11,12 +9,9 @@ from tree.topics import main as topics_main
 
 class TreeCommand(CommandExtension):
     def add_arguments(self, parser, cli_name):
-        # Keep a reference to the command-level parser so we can print its help later
         self._cmd_parser = parser
 
         verb_extensions = get_verb_extensions("tree.verb")
-
-        # Do not override parser.usage; let argparse generate the same as `-h`
 
         subparsers = parser.add_subparsers(
             dest="verb_name",
@@ -31,8 +26,8 @@ class TreeCommand(CommandExtension):
         parser.set_defaults(verb_extensions=verb_extensions)
 
     def main(self, *, parser, args):
+        # Show the same help as ros2 tree -h when no verb is provided
         if not getattr(args, "verb_name", None):
-            # Print the command-level help (same as `ros2 tree -h`)
             self._cmd_parser.print_help()
             return 0
 
@@ -51,6 +46,7 @@ class NodesVerb(_VerbExtension):
         parser.add_argument("-p", "--show-pkg", action="store_true")
 
     def main(self, *, parser=None, args):
+        # Build argv for the nodes entrypoint
         argv = []
         if args.show_color:
             argv.append("--show-color")
@@ -80,6 +76,7 @@ class TopicsVerb(_VerbExtension):
         parser.add_argument("--hz-window", type=float, default=1.0)
 
     def main(self, *, parser=None, args):
+        # Build argv for the topics entrypoint
         argv = []
         if args.show_color:
             argv.append("--show-color")

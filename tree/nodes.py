@@ -14,7 +14,7 @@ try:
 except Exception:
     get_packages_with_prefixes = None
 
-# ---- utils / shared helpers ----
+# Utils
 
 
 def fq(ns: str, name: str) -> str:
@@ -51,7 +51,7 @@ def compute_node_topic_counts(
     node_graph: Dict[str, dict],
     node_filter: Optional[str] = None,
 ) -> Tuple[int, int]:
-    # Apply same filter logic as print_nodes_tree
+    # Apply the same filter logic as print_nodes_tree
     def matches_filter(fqn: str) -> bool:
         if not node_filter:
             return True
@@ -89,7 +89,7 @@ def colorize(text, code, enable=True):
     return f"\x1b[{code}m{text}\x1b[0m" if (enable and code) else text
 
 
-# ---- rclpy compatibility ----
+# rclpy Compatibility
 
 
 def safe_get_topic_names_and_types(n: Node) -> List[Tuple[str, List[str]]]:
@@ -111,19 +111,15 @@ def safe_get_node_names_and_namespaces(n: Node) -> List[Tuple[str, str]]:
             return []
 
 
-# ---- internal visibility toggle ----
-# hide internal nodes (ros2cli daemon and introspector).
-# flip this based on -i/--include-hidden-topics to match topic-view behavior.
+# Internal Visibility Toggle
+
+# Hide internal nodes (ros2cli daemon and introspector). Flips based on -i/--include-hidden-topics to match topic view
 HIDE_INTERNAL = True
 
 
-# ---- hide helpers ----
-
-
+# Hide Helpers
 def should_hide_node(fqn: str) -> bool:
-    """Hide ros2cli internals and our introspector."""
-    """Hide ros2cli internals and our introspector (unless HIDE_INTERNAL is False)."""
-
+    # Hide ros2cli internals and the introspector unless HIDE_INTERNAL is False
     if not HIDE_INTERNAL:
         return False
 
@@ -136,7 +132,7 @@ def should_hide_node(fqn: str) -> bool:
     )
 
 
-# ---- ROS graph (augmented with types/QoS) ----
+# ROS Graph (Augmented With Types/QoS)
 
 
 def build_node_graph(
@@ -166,7 +162,7 @@ def build_node_graph(
     topic_types = {t: ",".join(types) if types else "?" for t, types in t_list}
 
     for topic, _types in t_list:
-        # pubs
+        # Publishers
         try:
             pubs = n.get_publishers_info_by_topic(topic)
         except Exception:
@@ -179,7 +175,7 @@ def build_node_graph(
             node_graph[fqn]["pubs"].append(
                 (topic, topic_types.get(topic, "?"), qos_str(info.qos_profile))
             )
-        # subs
+        # Subscriptions
         try:
             subs = n.get_subscriptions_info_by_topic(topic)
         except Exception:
@@ -195,7 +191,7 @@ def build_node_graph(
     return node_graph
 
 
-# ---- ament executable index ----
+# Ament Executable Index
 
 _EXEC_INDEX: Dict[str, List[Tuple[str, str]]] = {}
 
@@ -230,7 +226,7 @@ def resolve_exec_by_index(name: str) -> Optional[Tuple[str, str]]:
     return cands[0] if len(cands) == 1 else None
 
 
-# ---- /proc helpers (Linux) ----
+# /proc Helpers (Linux)
 
 CMD_NULL = "\x00"
 NODE_RE = re.compile(r"__node:=([^\s\0]+)")
@@ -265,14 +261,14 @@ def read_exe(pid: int) -> Optional[str]:
 
 
 def guess_pkg_exec_from_path(path: str) -> Tuple[Optional[str], Optional[str], bool]:
-    """Returns (pkg, exe, is_installed_lib_path)"""
+    # Return (pkg, exe, is_installed_lib_path)
     p = Path(path)
     try:
         parts = p.resolve().parts
     except Exception:
         parts = p.parts
 
-    # .../lib/<pkg>/<exec> - INSTALLED BINARY (C++ or Python)
+    # .../lib/<pkg>/<exec>
     try:
         lib_idx = parts.index("lib")
         if lib_idx + 2 < len(parts):
@@ -282,7 +278,7 @@ def guess_pkg_exec_from_path(path: str) -> Tuple[Optional[str], Optional[str], b
     except ValueError:
         pass
 
-    # .../src/<pkg>/... - dev source
+    # .../src/<pkg>/...
     try:
         src_idx = parts.index("src")
         if src_idx + 1 < len(parts):
@@ -296,38 +292,37 @@ def guess_pkg_exec_from_path(path: str) -> Tuple[Optional[str], Optional[str], b
 def resolve_script_or_exe(
     argv0: str, cmd: List[str], exe_link: Optional[str]
 ) -> Tuple[Optional[str], Optional[str], Optional[str], bool]:
-    """Returns (pkg, exe, full_path, is_confident)"""
-
-    # PRIORITY 1: /proc/pid/exe link (works for C++ binaries)
+    # Return (pkg, exe, full_path, is_confident)
+    # Priority 1: /proc/pid/exe link (works for C++ binaries)
     if exe_link:
         pkg, exe, confident = guess_pkg_exec_from_path(exe_link)
         if pkg and confident:
             return pkg, exe, exe_link, True
 
-    # PRIORITY 2: Python runner with script arg
+    # Priority 2: Python runner with script argument
     if Path(argv0).name in PY_RUNNERS and len(cmd) >= 2:
         arg1 = cmd[1]
         if os.path.isabs(arg1) and os.path.exists(arg1):
             pkg, exe, confident = guess_pkg_exec_from_path(arg1)
             return pkg, exe, arg1, confident
-        # Try index
+        # Try index lookup
         res = resolve_exec_by_index(Path(arg1).name)
         if res:
             pkg, full = res
             return pkg, Path(full).name, full, True
 
-    # PRIORITY 3: Absolute argv0
+    # Priority 3: Absolute argv0
     if os.path.isabs(argv0) and os.path.exists(argv0):
         pkg, exe, confident = guess_pkg_exec_from_path(argv0)
         return pkg, exe, argv0, confident
 
-    # PRIORITY 4: Index lookup by name
+    # Priority 4: Index lookup by name
     res = resolve_exec_by_index(Path(argv0).name)
     if res:
         pkg, full = res
         return pkg, Path(full).name, full, True
 
-    # PRIORITY 5: Fallback to exe_link even if not confident
+    # Priority 5: Fallback to exe_link even if not confident
     if exe_link:
         pkg, exe, confident = guess_pkg_exec_from_path(exe_link)
         return pkg, exe, exe_link, confident
@@ -390,18 +385,18 @@ def find_processes(hide_cli_daemon: bool = True) -> List[dict]:
     return procs
 
 
-# ---- mapping heuristics ----
+# Mapping Heuristics
 
 
 def names_match(node_base: str, exe_base: str) -> bool:
     if node_base == exe_base:
         return True
-    # plural/singular
+    # Plural/singular
     if exe_base.endswith("s") and node_base == exe_base[:-1]:
         return True
     if node_base.endswith("s") and exe_base == node_base[:-1]:
         return True
-    # underscores
+    # Underscores-insensitive
     if node_base.replace("_", "") == exe_base.replace("_", ""):
         return True
     return False
@@ -418,7 +413,7 @@ def map_nodes_to_processes(
     if not user_nodes:
         return mapping
 
-    # Pass 1: explicit __node/__ns
+    # Pass 1: Explicit __node/__ns
     for p in procs:
         if p.get("node_name"):
             ns = p.get("node_ns") or "/"
@@ -438,7 +433,7 @@ def map_nodes_to_processes(
         p for p in procs if p.get("is_pkg_exe") and not p.get("is_wrapper")
     ]
 
-    # Pass 2: singleton installed exe
+    # Pass 2: Singleton installed executable
     if (
         len(user_nodes) == 1
         and len(pkg_exe_procs) == 1
@@ -449,7 +444,7 @@ def map_nodes_to_processes(
         mapping[user_nodes[0]] = q
         return mapping
 
-    # Pass 3: name match
+    # Pass 3: Name match
     by_exe: Dict[str, List[dict]] = {}
     for p in pkg_exe_procs:
         exe_base = Path(p.get("exe") or "").name
@@ -472,7 +467,7 @@ def map_nodes_to_processes(
     if len(mapping) == len(user_nodes):
         return mapping
 
-    # Pass 4: singleton fallback
+    # Pass 4: Singleton fallback
     unmapped = [f for f in user_nodes if f not in mapping]
     remaining_pkg_exe = [p for p in pkg_exe_procs if p not in mapping.values()]
     if len(unmapped) == 1 and len(remaining_pkg_exe) == 1:
@@ -483,7 +478,7 @@ def map_nodes_to_processes(
     return mapping
 
 
-# ---- printing ----
+# Printing
 
 
 def print_nodes_tree(
@@ -498,9 +493,9 @@ def print_nodes_tree(
     show_pid=False,
     show_pkg=False,
 ):
-    di = (ls_colors or {}).get("di", "01;34")  # node names
-    ln = (ls_colors or {}).get("ln", "01;36")  # pubs color
-    ex = (ls_colors or {}).get("ex", "01;35")  # subs color
+    di = (ls_colors or {}).get("di", "01;34")  # Node names
+    ln = (ls_colors or {}).get("ln", "01;36")  # Publisher color
+    ex = (ls_colors or {}).get("ex", "01;35")  # Subscription color
 
     def matches_filter(fqn: str) -> bool:
         if not node_filter:
@@ -539,15 +534,12 @@ def print_nodes_tree(
         has_pubs = bool(pubs)
         has_subs = bool(subs)
 
-        # Print pubs section ONLY if there are pubs
+        # Print publishers section only if there are publishers
         if has_pubs:
-            # Label branch depends on whether subs section follows
             label_br = "├─ " if has_subs else "└─ "
             print(f"{next_prefix}{label_br}{pubs_label}")
-            # Items: keep vertical line if subs follows
             mid = "│  " if has_subs else "   "
             for j, item in enumerate(pubs):
-                # If subs follows, keep '├─ ' even for last pub item to visually continue
                 br = "└─ " if (j == len(pubs) - 1 and not has_subs) else "├─ "
                 topic, typ, qos = item if len(item) == 3 else (item, "?", "")
                 type_part = f" [{typ}]" if show_type else ""
@@ -556,7 +548,7 @@ def print_nodes_tree(
                 topic_col = colorize(topic, ln, enable_color)
                 print(prefix + topic_col + type_part + qos_part)
 
-        # Print subs section (if any)
+        # Print subscriptions section if any
         if has_subs:
             print(f"{next_prefix}└─ {subs_label}")
             for j, item in enumerate(subs):
@@ -568,12 +560,11 @@ def print_nodes_tree(
                 topic_col = colorize(topic, ex, enable_color)
                 print(prefix + topic_col + type_part + qos_part)
         elif not has_pubs:
-            # show that both sections are empty
-            # print(f"{next_prefix}└─ {subs_label} (none)")
+            # Both sections are empty
             pass
 
 
-# ---- main ----
+# Main
 
 
 class Introspector(Node):
@@ -621,22 +612,20 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
 
-    # Align with topic view: if hidden topics are included (-i),
-    # also show internal nodes (ros2cli daemon + this introspector).
+    # Align with topic view: If hidden topics are included (-i), also show internal nodes (ros2cli daemon + this introspector)
     global HIDE_INTERNAL
     HIDE_INTERNAL = not args.include_hidden_topics
 
     rclpy.init()
     n = Introspector()
     try:
-        time.sleep(0.2)  # allow discovery to settle
+        time.sleep(0.5)  # Allow discovery to settle
         graph = build_node_graph(n, include_hidden=args.include_hidden_topics)
         ns = n.get_namespace() or "/"
         ns = ns if ns.startswith("/") else "/" + ns
     finally:
         rclpy.shutdown()
 
-    # Linux-only process scan + robust mapping (no extra CLI flags)
     procs = find_processes(hide_cli_daemon=HIDE_INTERNAL)
     mapping = map_nodes_to_processes(graph, procs)
 
