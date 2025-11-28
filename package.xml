@@ -3,7 +3,7 @@
 <package format="3">
   <name>tree</name>
   <version>0.0.1</version>
-  <description>ROS 2 CLI tool to view node/topic tree</description>
+  <description>ROS 2 CLI tool to view node/topic tree, inspired by the tree command</description>
   <maintainer email="ishaanbhimwal@protonmail.com">Ishaan Bhimwal</maintainer>
   <license>MIT</license>
 

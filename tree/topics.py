@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # topic.py
 
 import argparse
@@ -261,17 +259,14 @@ def filter_tree_to_path(tree, path):
     return sub
 
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         formatter_class=lambda prog: argparse.HelpFormatter(
             prog, max_help_position=40, width=120
         )
     )
     parser.add_argument(
-        "-c",
-        "--show-color",
-        action="store_true",
-        help="colorize output",
+        "-c", "--show-color", action="store_true", help="colorize output"
     )
     parser.add_argument(
         "-m",
@@ -280,10 +275,7 @@ def parse_args():
         help="show message type next to topic",
     )
     parser.add_argument(
-        "-q",
-        "--show-qos",
-        action="store_true",
-        help="show QoS after pub/sub lines",
+        "-q", "--show-qos", action="store_true", help="show QoS after pub/sub lines"
     )
     parser.add_argument(
         "-T",
@@ -309,15 +301,15 @@ def parse_args():
         default=1.0,
         help="sampling window in seconds for Hz measurement (default: 1.0)",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main():
-    args = parse_args()
+def main(argv=None):
+    args = parse_args(argv)
     rclpy.init()
     node = Inspector()
     try:
-        time.sleep(0.2)  # allow discovery to settle
+        time.sleep(0.2)
         tree = build_tree(node, include_hidden=args.include_hidden_topics)
 
         if args.show_topic:
@@ -340,7 +332,6 @@ def main():
             )
 
         ls_colors = parse_ls_colors() if args.show_color else None
-
         ns = node.get_namespace() or "/"
         ns = ns if ns.startswith("/") else "/" + ns
         print(ns if ns != "" else "/")
@@ -356,10 +347,5 @@ def main():
 
         n_nodes, n_topics = compute_topic_node_counts(tree)
         print(f"\n{n_topics} topics, {n_nodes} nodes")
-
     finally:
         rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()

@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-# node.py
+# nodes.py
 
 import argparse
 import os
@@ -659,7 +657,3 @@ def main(argv=None):
 
     n_nodes, n_topics = compute_node_topic_counts(graph, node_filter=args.show_node)
     print(f"\n{n_nodes} nodes, {n_topics} topics")
-
-
-if __name__ == "__main__":
-    main()
