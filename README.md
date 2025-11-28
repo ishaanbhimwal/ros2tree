@@ -1,6 +1,6 @@
 # ros2tree
 
-ROS 2 CLI tool to view node/topic tree, inspired by the [tree](https://wikipedia.org/wiki/Tree_(command)) command. Tested on ROS Humble on Ubuntu 22.04</description>
+ROS 2 CLI tool to view node/topic tree, inspired by the [tree](https://wikipedia.org/wiki/Tree_(command)) command. Tested on ROS Humble on Ubuntu 22.04.
 
 ## Setup
 ```bash

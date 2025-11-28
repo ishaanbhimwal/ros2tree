@@ -14,7 +14,7 @@ setup(
     zip_safe=True,
     maintainer="Ishaan Bhimwal",
     maintainer_email="ishaanbhimwal@protonmail.com",
-    description="ROS 2 CLI tool to view node/topic tree, inspired by the tree command",
+    description="ROS 2 CLI tool to view node/topic tree, inspired by the tree command.",
     license="MIT",
     extras_require={
         "test": [
