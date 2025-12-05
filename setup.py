@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = "tree"
+package_name = "ros2tree"
 
 setup(
     name=package_name,
@@ -23,11 +23,11 @@ setup(
     },
     entry_points={
         "ros2cli.command": [
-            "tree = tree.tree:TreeCommand",
+            "tree = ros2tree.tree:TreeCommand",
         ],
         "tree.verb": [
-            "nodes = tree.tree:NodesVerb",
-            "topics = tree.tree:TopicsVerb",
+            "nodes = ros2tree.tree:NodesVerb",
+            "topics = ros2tree.tree:TopicsVerb",
         ],
     },
 )

@@ -3,8 +3,8 @@
 from ros2cli.command import CommandExtension
 from ros2cli.verb import get_verb_extensions
 from ros2cli.verb import VerbExtension as _VerbExtension
-from tree.nodes import main as nodes_main
-from tree.topics import main as topics_main
+from .nodes import main as nodes_main
+from .topics import main as topics_main
 
 
 class TreeCommand(CommandExtension):
