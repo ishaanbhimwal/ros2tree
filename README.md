@@ -7,7 +7,7 @@ ROS 2 CLI tool to view node/topic tree, inspired by the [tree](https://wikipedia
 cd ~/ros2_ws/src
 git clone https://github.com/ishaanbhimwal/ros2tree.git
 cd ~/ros2_ws
-colcon build --packages-select tree
+colcon build --packages-select ros2tree
 source install/setup.bash
 ```
 
